@@ -1,16 +1,16 @@
 /**
- * Sample React Native App
+ * Tazeen App
  * https://github.com/facebook/react-native
  *
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import AuthNavigator from './src/navigation/AuthNavigator';
+import { CartProvider } from './src/context/CartContext';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -18,21 +18,12 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <View style={styles.container}>
+        <CartProvider>
+          <AuthNavigator />
+        </CartProvider>
+      </View>
     </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
   );
 }
 

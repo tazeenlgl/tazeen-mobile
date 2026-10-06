@@ -73,3 +73,9 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Tazeen development/test artifacts
+/*.png
+/*.xml
+/dist/
+/android/*_log*.txt

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "395537642181",
+    "project_id": "tazeen-fc92c",
+    "storage_bucket": "tazeen-fc92c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395537642181:android:6410b4c63c33023c94f6ac",
+        "android_client_info": {
+          "package_name": "com.tazeenmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx9M-ZWPG3nR5S1YtsKXMHwVTslOaX8ys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

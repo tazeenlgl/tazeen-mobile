@@ -1,0 +1,25 @@
+export const colors = {
+  primary: '#6B2B8C',
+  primaryDark: '#531E6E',
+  background: '#F8F5FC',
+  surface: '#FFFFFF',
+  heading: '#2B2730',
+  textSecondary: '#8B8690',
+  border: '#E6E1E8',
+  placeholder: '#B5AFBC',
+  white: '#FFFFFF',
+  primaryTint: '#F1E7F7',
+  glassSurface: 'rgba(255, 255, 255, 0.55)',
+  glassBorder: 'rgba(255, 255, 255, 0.65)',
+  glassDark: 'rgba(43, 39, 48, 0.45)',
+  softGreen: '#E8F3EA',
+  softGreenBorder: '#CFE8D4',
+  deepGreen: '#2F6B3F',
+  // Rewards: gift card / premium voucher accents, kept in the same
+  // purple family as `primary`/`primaryDark` rather than a new palette.
+  giftCardDeep: '#3D1854',
+  giftCardAccent: '#D9B873',
+  amber: '#B8822A',
+  softAmber: '#FBF1DF',
+  softAmberBorder: '#F0DDB3',
+};
