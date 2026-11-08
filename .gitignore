@@ -79,3 +79,6 @@ yarn-error.log
 /*.xml
 /dist/
 /android/*_log*.txt
+
+hs_err_pid*.log
+replay_pid*.log
