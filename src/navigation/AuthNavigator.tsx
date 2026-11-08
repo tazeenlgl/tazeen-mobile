@@ -7,7 +7,6 @@ import HomeScreen from '../screens/HomeScreen';
 import ProductsScreen from '../screens/ProductsScreen';
 import RewardsScreen from '../screens/RewardsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
 import GameHubScreen from '../screens/GameHubScreen';
 import SideDrawer from '../components/home/SideDrawer';
 import StopwatchGameScreen from '../screens/StopwatchGameScreen';
@@ -17,6 +16,26 @@ import TermsOfUseScreen from '../screens/TermsOfUseScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ChangePinScreen from '../screens/ChangePinScreen';
+import AddressesScreen from '../screens/AddressesScreen';
+import AddressFormScreen from '../screens/AddressFormScreen';
+import ChangePhoneScreen from '../screens/ChangePhoneScreen';
+import AboutTazeenScreen from '../screens/AboutTazeenScreen';
+import CompanyDetailsScreen from '../screens/CompanyDetailsScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import HelpScreen from '../screens/HelpScreen';
+import WishlistScreen from '../screens/WishlistScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
+import OrderConfirmationScreen from '../screens/OrderConfirmationScreen';
+import OrderDetailsScreen from '../screens/OrderDetailsScreen';
+import ReturnRequestScreen from '../screens/ReturnRequestScreen';
+import ReturnPolicyScreen from '../screens/ReturnPolicyScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import { NotificationProvider } from '../context/NotificationContext';
+import { WishlistProvider } from '../context/WishlistContext';
+import type { Order } from '../types/order';
+import { AddressProvider } from '../context/AddressContext';
+import { OrderProvider } from '../context/OrderContext';
+import type { Address } from '../types/address';
 import type { GameScreenKey } from '../types/game';
 import ProductDetailsScreen from '../screens/ProductDetailsScreen';
 import CartScreen from '../screens/CartScreen';
@@ -36,8 +55,21 @@ type AuthScreen =
   | 'Rewards'
   | 'Profile'
   | 'Orders'
+  | 'Wishlist'
+  | 'Help'
+  | 'Checkout'
+  | 'OrderConfirmation'
+  | 'OrderDetails'
+  | 'ReturnRequest'
+  | 'ReturnPolicy'
+  | 'Notifications'
   | 'SettingsMenu'
   | 'ChangePin'
+  | 'Addresses'
+  | 'AddressForm'
+  | 'ChangePhone'
+  | 'About'
+  | 'Company'
   | 'TermsOfUse'
   | 'PrivacyPolicy'
   | 'Game'
@@ -58,8 +90,25 @@ function AuthNavigatorContent() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [cartReturn, setCartReturn] = useState<AuthScreen>('Products');
   const [detailsReturn, setDetailsReturn] = useState<AuthScreen>('Products');
+  const [pinReturn, setPinReturn] = useState<AuthScreen>('SettingsMenu');
+  const [companyReturn, setCompanyReturn] = useState<AuthScreen>('Home');
+  const [editingAddress, setEditingAddress] = useState<Address | undefined>(undefined);
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [activeOrderId, setActiveOrderId] = useState<string>('');
+  const [orderReturn, setOrderReturn] = useState<AuthScreen>('Orders');
+  const [addressesReturn, setAddressesReturn] = useState<AuthScreen>('Profile');
+  const [policyReturn, setPolicyReturn] = useState<AuthScreen>('Home');
   const { addToCart } = useCart();
-  const { logout: authLogout } = useAuth();
+  const { logout: authLogout, isLoggedIn, ready } = useAuth();
+  const restored = React.useRef(false);
+
+  // Returning shoppers go straight in instead of seeing Login again.
+  useEffect(() => {
+    if (ready && isLoggedIn && !restored.current) {
+      restored.current = true;
+      setScreen(current => (current === 'Login' ? 'Home' : current));
+    }
+  }, [ready, isLoggedIn]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -89,7 +138,51 @@ function AuthNavigatorContent() {
           return true;
         }
         if (screen === 'ChangePin') {
-          setScreen('SettingsMenu');
+          setScreen(pinReturn);
+          return true;
+        }
+        if (screen === 'Addresses') {
+          setScreen(addressesReturn);
+          return true;
+        }
+        if (screen === 'ChangePhone') {
+          setScreen('Profile');
+          return true;
+        }
+        if (screen === 'Wishlist' || screen === 'Notifications' || screen === 'Help') {
+          setScreen('Home');
+          return true;
+        }
+        if (screen === 'Checkout') {
+          setScreen('Cart');
+          return true;
+        }
+        if (screen === 'OrderConfirmation') {
+          setScreen('Home');
+          return true;
+        }
+        if (screen === 'OrderDetails') {
+          setScreen(orderReturn);
+          return true;
+        }
+        if (screen === 'ReturnRequest') {
+          setScreen('OrderDetails');
+          return true;
+        }
+        if (screen === 'ReturnPolicy') {
+          setScreen(policyReturn);
+          return true;
+        }
+        if (screen === 'AddressForm') {
+          setScreen('Addresses');
+          return true;
+        }
+        if (screen === 'About') {
+          setScreen('Home');
+          return true;
+        }
+        if (screen === 'Company') {
+          setScreen(companyReturn);
           return true;
         }
         if (screen === 'Game') {
@@ -128,7 +221,7 @@ function AuthNavigatorContent() {
       },
     );
     return () => subscription.remove();
-  }, [screen, drawerOpen, cartReturn, detailsReturn]);
+  }, [screen, drawerOpen, cartReturn, detailsReturn, pinReturn, companyReturn, addressesReturn, orderReturn, policyReturn]);
 
   const openCart = () => {
     if (screen !== 'Cart') {
@@ -163,7 +256,113 @@ function AuthNavigatorContent() {
         onBack={() => setScreen(cartReturn)}
         onMenuPress={() => setDrawerOpen(true)}
         onBrowseProducts={() => setScreen('Products')}
+        onCheckout={() => setScreen('Checkout')}
       />;
+  }
+
+  if (screen === 'Checkout') {
+    return (
+      <CheckoutScreen
+        onBack={() => setScreen('Cart')}
+        onCartPress={() => setScreen('Cart')}
+        onManageAddresses={() => {
+          setAddressesReturn('Checkout');
+          setScreen('Addresses');
+        }}
+        onPlaced={order => {
+          setPlacedOrder(order);
+          setScreen('OrderConfirmation');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'OrderConfirmation' && placedOrder) {
+    return (
+      <OrderConfirmationScreen
+        order={placedOrder}
+        onTrack={() => {
+          setActiveOrderId(placedOrder.id);
+          setOrderReturn('Orders');
+          setScreen('OrderDetails');
+        }}
+        onContinue={() => setScreen('Home')}
+      />
+    );
+  }
+
+  if (screen === 'Help') {
+    return (
+      <HelpScreen
+        onBack={() => setScreen('Home')}
+        onCartPress={() => openCart()}
+        onOpenPolicy={() => {
+          setPolicyReturn('Help');
+          setScreen('ReturnPolicy');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'Wishlist') {
+    return (
+      <WishlistScreen
+        onBack={() => setScreen('Home')}
+        onCartPress={() => openCart()}
+        onSelectProduct={openProductDetails}
+        onBrowseProducts={() => setScreen('Products')}
+      />
+    );
+  }
+
+  if (screen === 'Notifications') {
+    return (
+      <NotificationsScreen
+        onBack={() => setScreen('Home')}
+        onCartPress={() => openCart()}
+        onOpenOrder={id => {
+          setActiveOrderId(id);
+          setOrderReturn('Notifications');
+          setScreen('OrderDetails');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'OrderDetails') {
+    return (
+      <OrderDetailsScreen
+        orderId={activeOrderId}
+        onBack={() => setScreen(orderReturn)}
+        onCartPress={() => openCart()}
+        onReturn={() => setScreen('ReturnRequest')}
+        onOpenPolicy={() => {
+          setPolicyReturn('OrderDetails');
+          setScreen('ReturnPolicy');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'ReturnRequest') {
+    return (
+      <ReturnRequestScreen
+        orderId={activeOrderId}
+        onBack={() => setScreen('OrderDetails')}
+        onCartPress={() => openCart()}
+        onDone={() => setScreen('OrderDetails')}
+        onOpenPolicy={() => {
+          setPolicyReturn('ReturnRequest');
+          setScreen('ReturnPolicy');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'ReturnPolicy') {
+    return (
+      <ReturnPolicyScreen onBack={() => setScreen(policyReturn)} onCartPress={() => openCart()} />
+    );
   }
 
   if (screen === 'TryOnCapture' && tryOnProduct) {
@@ -218,6 +417,10 @@ function AuthNavigatorContent() {
         onAddToCart={() => openCart()}
         onBack={() => setScreen(detailsReturn)}
         onCartPress={() => openCart()}
+        onBuyNow={() => {
+          setCartReturn('ProductDetails');
+          setScreen('Checkout');
+        }}
         onTryItOn={product => {
           setTryOnProduct(product);
           setTryOnPhotoUri(null);
@@ -293,13 +496,15 @@ function AuthNavigatorContent() {
 
   if (screen === 'Orders') {
     return (
-      <PlaceholderScreen
-        title={screen}
-        drawerOpen={drawerOpen}
-        onMenuPress={() => setDrawerOpen(true)}
-        onDrawerClose={() => setDrawerOpen(false)}
+      <OrdersScreen
         onBack={() => setScreen('Home')}
         onCartPress={() => openCart()}
+        onBrowseProducts={() => setScreen('Products')}
+        onOpenOrder={id => {
+          setActiveOrderId(id);
+          setOrderReturn('Orders');
+          setScreen('OrderDetails');
+        }}
       />
     );
   }
@@ -312,6 +517,7 @@ function AuthNavigatorContent() {
         onDrawerClose={() => setDrawerOpen(false)}
         onNavigate={key => {
           if (key === 'changepin') {
+            setPinReturn('SettingsMenu');
             setScreen('ChangePin');
           }
           if (key === 'termsofuse') {
@@ -327,10 +533,71 @@ function AuthNavigatorContent() {
     );
   }
 
+  if (screen === 'Addresses') {
+    return (
+      <AddressesScreen
+        onBack={() => setScreen(addressesReturn)}
+        onCartPress={() => openCart()}
+        onAdd={() => {
+          setEditingAddress(undefined);
+          setScreen('AddressForm');
+        }}
+        onEdit={address => {
+          setEditingAddress(address);
+          setScreen('AddressForm');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'AddressForm') {
+    return (
+      <AddressFormScreen
+        key={editingAddress?.id ?? 'new'}
+        address={editingAddress}
+        onBack={() => setScreen('Addresses')}
+        onCartPress={() => openCart()}
+        onSaved={() => setScreen('Addresses')}
+      />
+    );
+  }
+
+  if (screen === 'ChangePhone') {
+    return (
+      <ChangePhoneScreen
+        onBack={() => setScreen('Profile')}
+        onCartPress={() => openCart()}
+        onDone={() => setScreen('Profile')}
+      />
+    );
+  }
+
+  if (screen === 'About') {
+    return (
+      <AboutTazeenScreen
+        onBack={() => setScreen('Home')}
+        onCartPress={() => openCart()}
+        onOpenCompany={() => {
+          setCompanyReturn('About');
+          setScreen('Company');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'Company') {
+    return (
+      <CompanyDetailsScreen
+        onBack={() => setScreen(companyReturn)}
+        onCartPress={() => openCart()}
+      />
+    );
+  }
+
   if (screen === 'ChangePin') {
     return (
       <ChangePinScreen
-        onBack={() => setScreen('SettingsMenu')}
+        onBack={() => setScreen(pinReturn)}
         onCartPress={() => openCart()}
       />
     );
@@ -375,6 +642,15 @@ function AuthNavigatorContent() {
           }
         }}
         onCartPress={() => openCart()}
+        onOpenAddresses={() => {
+          setAddressesReturn('Profile');
+          setScreen('Addresses');
+        }}
+        onOpenChangePhone={() => setScreen('ChangePhone')}
+        onOpenChangePin={() => {
+          setPinReturn('Profile');
+          setScreen('ChangePin');
+        }}
       />
     );
   }
@@ -427,6 +703,9 @@ function AuthNavigatorContent() {
           if (key === 'orders') {
             setScreen('Orders');
           }
+          if (key === 'notifications') {
+            setScreen('Notifications');
+          }
           if (key === 'settings') {
             setScreen('SettingsMenu');
           }
@@ -478,6 +757,30 @@ function AuthNavigatorContent() {
           if (key === 'settings') {
             setScreen('SettingsMenu');
           }
+          if (key === 'addresses') {
+            setAddressesReturn('Home');
+            setScreen('Addresses');
+          }
+          if (key === 'wishlist') {
+            setScreen('Wishlist');
+          }
+          if (key === 'help') {
+            setScreen('Help');
+          }
+          if (key === 'notifications') {
+            setScreen('Notifications');
+          }
+          if (key === 'returnpolicy') {
+            setPolicyReturn('Home');
+            setScreen('ReturnPolicy');
+          }
+          if (key === 'about') {
+            setScreen('About');
+          }
+          if (key === 'company') {
+            setCompanyReturn(screen === 'About' ? 'About' : 'Home');
+            setScreen('Company');
+          }
           if (key === 'login') {
             setScreen('Login');
           }
@@ -500,7 +803,15 @@ function AuthNavigatorContent() {
 export default function AuthNavigator() {
   return (
     <AuthProvider>
-      <AuthNavigatorContent />
+      <AddressProvider>
+        <OrderProvider>
+          <NotificationProvider>
+            <WishlistProvider>
+              <AuthNavigatorContent />
+            </WishlistProvider>
+          </NotificationProvider>
+        </OrderProvider>
+      </AddressProvider>
     </AuthProvider>
   );
 }

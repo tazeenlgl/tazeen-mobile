@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogBox, StyleSheet, Text, View } from 'react-native';
+import { LogBox, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/typography';
@@ -48,12 +48,14 @@ export default function RewardsScreen({
 
   return (
     <View style={styles.flex}>
-      <View
-        style={[
+      <ScrollView
+        style={styles.flex}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
           styles.content,
           {
             paddingTop: insets.top + 10,
-            paddingBottom: navBarClearance,
+            paddingBottom: navBarClearance + 16,
           },
         ]}
       >
@@ -79,7 +81,7 @@ export default function RewardsScreen({
           Coupons
         </Text>
         <CouponCarousel coupons={coupons} />
-      </View>
+      </ScrollView>
 
       <BottomNavigation
         activeKey={activeNav}
@@ -96,33 +98,38 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
     paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   titleRow: {
-    marginBottom: 10,
+    marginTop: 8,
+    marginBottom: 20,
   },
   pageTitle: {
     fontFamily: displayFont,
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 30,
+    fontWeight: '700',
     color: colors.heading,
-    marginBottom: 1,
+    marginBottom: 4,
   },
   pageSubtitle: {
-    fontSize: 11,
+    fontSize: 13,
+    letterSpacing: 0.3,
     color: colors.textSecondary,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontFamily: displayFont,
+    fontSize: 19,
     fontWeight: '700',
     color: colors.heading,
-    marginBottom: 6,
+    marginBottom: 12,
   },
   couponsTitle: {
-    marginTop: 10,
+    marginTop: 26,
   },
   spacer: {
-    height: 10,
+    height: 20,
   },
 });

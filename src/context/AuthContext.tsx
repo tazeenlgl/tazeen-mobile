@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
+import { usePersistedState } from '../utils/storage';
 
 type User = {
   phone: string;
@@ -7,16 +8,20 @@ type User = {
 
 type AuthContextValue = {
   isLoggedIn: boolean;
+  // False until the saved session has been read from the device.
+  ready: boolean;
   user: User | null;
   login: (phone: string, pin: string) => void;
   logout: () => void;
+  updatePhone: (phone: string) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn, loggedHydrated] = usePersistedState('loggedIn', false);
+  const [user, setUser, userHydrated] = usePersistedState<User | null>('user', null);
+  const ready = loggedHydrated && userHydrated;
 
   const login = (phone: string, pin: string) => {
     setIsLoggedIn(true);
@@ -28,11 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updatePhone = (phone: string) => {
+    setUser(current => (current ? { ...current, phone } : current));
+  };
+
   const value: AuthContextValue = {
     isLoggedIn,
+    ready,
     user,
     login,
     logout,
+    updatePhone,
   };
 
   return (

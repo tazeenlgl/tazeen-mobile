@@ -16,6 +16,16 @@ export const categories: Category[] = [
     tint: '#CBB7E0',
     imageProductId: 'p-zasmin-jaipuri-cotton',
   },
-  { id: 'silk', name: 'Silk', tint: '#E3B8C4' },
-  { id: 'daily-wear', name: 'Daily Wear', tint: '#B8CBE0' },
+  {
+    id: 'silk',
+    name: 'Silk',
+    tint: '#E3B8C4',
+    imageProductId: 'p-plum-embroidered-palazzo',
+  },
+  {
+    id: 'daily-wear',
+    name: 'Daily Wear',
+    tint: '#B8CBE0',
+    imageProductId: 'p-sage-tiered-anarkali',
+  },
 ];

@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePersistedState } from '../utils/storage';
 import { colors } from '../theme/colors';
 import TopBar from '../components/common/TopBar';
 import BottomNavigation from '../components/home/BottomNavigation';
@@ -44,6 +45,8 @@ const TABLET_BREAKPOINT = 600;
 const MAX_CONTENT_WIDTH = 1100;
 const availableSizes = collectSizes(products);
 
+const SUGGESTED_SEARCHES = ['Anarkali', 'Palazzo', 'Embroidered', 'Cotton', 'Sharara'];
+
 export default function ProductsScreen({
   onMenuPress,
   onNavigate,
@@ -55,6 +58,7 @@ export default function ProductsScreen({
   const [activeNav, setActiveNav] = useState('products');
   const [filters, setFilters] = useState<ProductFilters>(DEFAULT_FILTERS);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [recent, setRecent] = usePersistedState<string[]>('recentSearches', []);
   const [sheetMode, setSheetMode] = useState<SheetMode | null>(null);
 
   const navBarBottomOffset = insets.bottom + 16;
@@ -151,7 +155,34 @@ export default function ProductsScreen({
                 autoFocus
                 returnKeyType="search"
                 clearButtonMode="while-editing"
+                onSubmitEditing={() => {
+                  const term = filters.query.trim();
+                  if (term) {
+                    setRecent(current =>
+                      [term, ...current.filter(item => item.toLowerCase() !== term.toLowerCase())].slice(0, 6),
+                    );
+                  }
+                }}
               />
+            )}
+
+            {searchOpen && filters.query.trim() === '' && (
+              <View style={styles.suggestRow}>
+                {(recent.length > 0 ? recent : SUGGESTED_SEARCHES).map(term => (
+                  <Pressable
+                    key={term}
+                    style={styles.suggestChip}
+                    onPress={() => updateFilters({ query: term })}
+                  >
+                    <Text style={styles.suggestText}>{recent.length > 0 ? '↺ ' : ''}{term}</Text>
+                  </Pressable>
+                ))}
+                {recent.length > 0 && (
+                  <Pressable onPress={() => setRecent([])}>
+                    <Text style={styles.suggestClear}>Clear</Text>
+                  </Pressable>
+                )}
+              </View>
             )}
 
             <View style={styles.categoryWrap}>
@@ -218,6 +249,17 @@ export default function ProductsScreen({
 }
 
 const styles = StyleSheet.create({
+  suggestRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 },
+  suggestChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  suggestText: { fontSize: 12, color: colors.heading },
+  suggestClear: { fontSize: 12, fontWeight: '700', color: colors.primary },
   flex: {
     flex: 1,
     backgroundColor: colors.background,

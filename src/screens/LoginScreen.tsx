@@ -10,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
+import { signInWithTruecaller } from '../services/auth/truecaller';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
@@ -42,12 +44,39 @@ export default function LoginScreen({
   onNavigate,
 }: LoginScreenProps) {
   const insets = useSafeAreaInsets();
+  const { login } = useAuth();
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
+  const [truecallerBusy, setTruecallerBusy] = useState(false);
+  const [truecallerError, setTruecallerError] = useState('');
   const [pinVisible, setPinVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [phoneFocused, setPhoneFocused] = useState(false);
   const [pinFocused, setPinFocused] = useState(false);
+
+  // Mock auth: record what was entered so later screens (Change PIN,
+  // Change number) can verify against it. Nothing is validated server-side.
+  const handleTruecaller = async () => {
+    if (truecallerBusy) {
+      return;
+    }
+    setTruecallerBusy(true);
+    setTruecallerError('');
+    const result = await signInWithTruecaller();
+    setTruecallerBusy(false);
+    if (result.ok) {
+      // Truecaller verified the number, so no PIN is set for this session.
+      login(result.profile.phone, '');
+      onLogin?.();
+    } else if (!result.cancelled) {
+      setTruecallerError(result.message);
+    }
+  };
+
+  const handleLogin = () => {
+    login(phone, pin);
+    onLogin?.();
+  };
 
   return (
     <KeyboardAvoidingView
@@ -144,18 +173,25 @@ export default function LoginScreen({
         </View>
 
         <View style={styles.actions}>
-          <Pressable style={styles.loginButton} onPress={onLogin}>
+          <Pressable style={styles.loginButton} onPress={handleLogin}>
             <Text style={styles.loginButtonText}>Login</Text>
           </Pressable>
 
-          <Pressable style={styles.truecallerButton}>
+          <Pressable
+            style={[styles.truecallerButton, truecallerBusy && styles.truecallerBusy]}
+            onPress={handleTruecaller}
+            disabled={truecallerBusy}
+          >
             <View style={styles.truecallerBadge}>
               <Text style={styles.truecallerBadgeText}>T</Text>
             </View>
             <Text style={styles.truecallerButtonText}>
-              Log In with Truecaller
+              {truecallerBusy ? 'Opening Truecaller…' : 'Log In with Truecaller'}
             </Text>
           </Pressable>
+          {truecallerError ? (
+            <Text style={styles.truecallerError}>{truecallerError}</Text>
+          ) : null}
         </View>
 
         <View style={styles.footer}>
@@ -180,6 +216,8 @@ export default function LoginScreen({
 }
 
 const styles = StyleSheet.create({
+  truecallerBusy: { opacity: 0.6 },
+  truecallerError: { marginTop: 10, fontSize: 13, textAlign: 'center', color: '#B3261E' },
   flex: {
     flex: 1,
     backgroundColor: colors.background,

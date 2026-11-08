@@ -57,12 +57,12 @@ export default function WalletPointsRow({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
   },
   card: {
     flex: 1,
-    borderRadius: 14,
-    padding: 10,
+    borderRadius: 18,
+    padding: 14,
     borderWidth: 1,
   },
   walletCard: {
@@ -74,30 +74,31 @@ const styles = StyleSheet.create({
     borderColor: colors.softAmberBorder,
   },
   cardTop: {
-    marginBottom: 6,
+    marginBottom: 10,
   },
   iconBubble: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.white,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   walletIconBubble: {},
   pointsIconBubble: {},
   icon: {
-    fontSize: 12,
+    fontSize: 15,
   },
   label: {
-    fontSize: 10,
+    fontSize: 12,
     color: colors.textSecondary,
     marginBottom: 1,
   },
   value: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '800',
+    marginBottom: 6,
     color: colors.heading,
   },
   historyRow: {
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   historyText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.primary,
   },

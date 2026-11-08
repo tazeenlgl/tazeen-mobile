@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { colors } from '../../theme/colors';
 import type { Product } from '../../types/product';
+import HeartButton from '../common/HeartButton';
 import ProductImagePlaceholder from './ProductImagePlaceholder';
 
 type ProductCardProps = {
@@ -69,6 +70,7 @@ export default function ProductCard({ product, onPress, width }: ProductCardProp
             style={styles.image}
           />
         )}
+        <HeartButton productId={product.id} size={32} style={styles.heart} />
         {product.discount > 0 && (
           <View style={styles.saleBadge}>
             <Text style={styles.saleBadgeText}>SALE</Text>
@@ -129,6 +131,7 @@ export default function ProductCard({ product, onPress, width }: ProductCardProp
 }
 
 const styles = StyleSheet.create({
+  heart: { position: 'absolute', top: 8, right: 8 },
   card: {
     width: '48%',
     backgroundColor: colors.surface,
@@ -142,13 +145,11 @@ const styles = StyleSheet.create({
   },
   imageArea: {
     aspectRatio: 0.85,
+    overflow: 'hidden',
   },
   image: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   saleBadge: {
     position: 'absolute',

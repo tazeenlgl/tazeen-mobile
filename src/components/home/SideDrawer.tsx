@@ -23,8 +23,15 @@ const getMenuItems = (isLoggedIn: boolean): DrawerItem[] => {
 
   return [
     { key: 'orders', label: 'Orders', icon: '▤' },
+    { key: 'wishlist', label: 'Wishlist', icon: '♡' },
+    { key: 'notifications', label: 'Notifications', icon: '◔' },
+    { key: 'addresses', label: 'My Addresses', icon: '⌂' },
     { key: 'settings', label: 'Settings', icon: '⚙' },
+    { key: 'about', label: 'About Tazeen', icon: '✦' },
+    { key: 'company', label: 'Company Details', icon: '◎' },
     authItem,
+    { key: 'help', label: 'Help and Support', icon: '?' },
+    { key: 'returnpolicy', label: 'Returns Policy', icon: '↺' },
     { key: 'termsofuse', label: 'Terms of Use', icon: '📄' },
     { key: 'privacypolicy', label: 'Privacy Policy', icon: '🔒' },
   ];

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TazeenMobile</string>
+    <!-- Truecaller OAuth client ID from https://sdk-console-noneu.truecaller.com (package com.tazeenmobile + SHA1). -->
+    <string name="truecaller_client_id" translatable="false">REPLACE_WITH_TRUECALLER_CLIENT_ID</string>
 </resources>

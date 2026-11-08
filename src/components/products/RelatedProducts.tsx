@@ -6,6 +6,7 @@ import type { Product } from '../../types/product';
 type RelatedProductsProps = {
   products: Product[];
   onSelect: (product: Product) => void;
+  title?: string;
 };
 
 function formatRupees(value: number): string {
@@ -15,6 +16,7 @@ function formatRupees(value: number): string {
 export default function RelatedProducts({
   products,
   onSelect,
+  title = 'Related Products',
 }: RelatedProductsProps) {
   if (products.length === 0) {
     return null;
@@ -22,7 +24,7 @@ export default function RelatedProducts({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Related Products</Text>
+      <Text style={styles.title}>{title}</Text>
       <View style={styles.row}>
         {products.map(product => (
           <Pressable

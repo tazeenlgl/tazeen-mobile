@@ -1,0 +1,82 @@
+import type { Order } from '../types/order';
+
+// Test orders for the Orders screen. Mock data only: nothing is persisted.
+export const testOrders: Order[] = [
+  {
+    id: 'TZN-240918',
+    placedAt: '2026-11-05T10:20:00',
+    status: 'Shipped',
+    items: [
+      { productId: 'p1', title: 'Embroidered Anarkali Suit Set', size: 'M', quantity: 1, unitPrice: 1799, imageTint: '#D8C7E8' },
+      { productId: 'p2', title: 'Printed Straight Kurti', size: 'L', quantity: 2, unitPrice: 599, imageTint: '#E3B8C4' },
+    ],
+    subtotal: 2997,
+    discount: 300,
+    deliveryFee: 0,
+    total: 2697,
+    paymentMethod: 'UPI',
+    addressLabel: 'Home',
+    addressSummary: 'Jal Tank Road, Lalgola, Murshidabad 742148',
+  },
+  {
+    id: 'TZN-240871',
+    placedAt: '2026-11-07T18:05:00',
+    status: 'Placed',
+    items: [
+      { productId: 'p-zasmin-jaipuri-cotton', title: 'ZASMIN Jaipuri Cotton Suit', size: 'L', quantity: 1, unitPrice: 1499, imageTint: '#E9B9A0' },
+    ],
+    subtotal: 1499,
+    discount: 150,
+    deliveryFee: 0,
+    total: 1349,
+    paymentMethod: 'Card',
+    addressLabel: 'Work',
+    addressSummary: '24 Park Street, Kolkata 700016',
+  },
+  {
+    id: 'TZN-240702',
+    placedAt: '2026-10-22T12:40:00',
+    status: 'Delivered',
+    items: [
+      { productId: 'p6', title: 'Chikankari Cotton Suit Set', size: 'M', quantity: 1, unitPrice: 2099, imageTint: '#CFE0C7' },
+      { productId: 'p5', title: 'High-Waist Palazzo Pants', size: 'M', quantity: 1, unitPrice: 849, imageTint: '#B8CBE0' },
+    ],
+    subtotal: 2948,
+    discount: 295,
+    deliveryFee: 0,
+    total: 2653,
+    paymentMethod: 'UPI',
+    addressLabel: 'Home',
+    addressSummary: 'Jal Tank Road, Lalgola, Murshidabad 742148',
+  },
+  {
+    id: 'TZN-240655',
+    placedAt: '2026-10-09T09:15:00',
+    status: 'Delivered',
+    items: [
+      { productId: 'p7', title: 'A-Line Floral Kurti with Pocket Detail', size: 'S', quantity: 1, unitPrice: 719, imageTint: '#E3B8C4' },
+    ],
+    subtotal: 719,
+    discount: 0,
+    deliveryFee: 49,
+    total: 768,
+    paymentMethod: 'Cash on delivery',
+    addressLabel: 'Home',
+    addressSummary: 'Jal Tank Road, Lalgola, Murshidabad 742148',
+  },
+  {
+    id: 'TZN-240590',
+    placedAt: '2026-09-28T16:30:00',
+    status: 'Cancelled',
+    items: [
+      { productId: 'p8', title: 'Slim Fit Formal Trousers', size: 'XL', quantity: 1, unitPrice: 999, imageTint: '#B8CBE0' },
+    ],
+    subtotal: 999,
+    discount: 0,
+    deliveryFee: 49,
+    total: 1048,
+    paymentMethod: 'Card',
+    addressLabel: 'Work',
+    addressSummary: '24 Park Street, Kolkata 700016',
+  },
+];

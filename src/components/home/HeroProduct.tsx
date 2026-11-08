@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
+  ScrollView,
   Pressable,
   StyleSheet,
   Text,
@@ -10,48 +11,91 @@ import {
 import { colors } from '../../theme/colors';
 import type { Product } from '../../types/product';
 
-type HeroProductProps = {
-  product: Product;
+type HeroCarouselProps = {
+  products: Product[];
   onPress: (product: Product) => void;
 };
+
+const AUTO_SLIDE_MS = 4000;
 
 function formatRupees(value: number): string {
   return `₹${value.toLocaleString('en-IN')}`;
 }
 
-// Large tappable hero card for a real catalog product. The whole card
-// (photo, text and "View Product") opens the existing Product Details.
-export default function HeroProduct({ product, onPress }: HeroProductProps) {
-  const { width } = useWindowDimensions();
-  const photo = product.images?.[0];
-  if (!photo) {
+// Auto-sliding hero with up to four catalog products. Each slide opens
+// Product Details. Image height follows the slide width (4:5), so it adapts
+// to any screen; the pager resumes auto-slide after the user swipes.
+export default function HeroProduct({ products, onPress }: HeroCarouselProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const width = Math.min(screenWidth - 40, 600);
+  const slides = products.filter(p => p.images && p.images.length > 0).slice(0, 6);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const [index, setIndex] = useState(0);
+  const indexRef = useRef(0);
+  const count = slides.length;
+
+  useEffect(() => {
+    if (count < 2) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      const next = (indexRef.current + 1) % count;
+      indexRef.current = next;
+      setIndex(next);
+      scrollRef.current?.scrollTo({ x: next * width, animated: true });
+    }, AUTO_SLIDE_MS);
+    return () => clearInterval(timer);
+  }, [count, width, index]);
+
+  if (count === 0) {
     return null;
   }
 
   return (
-    <Pressable style={styles.card} onPress={() => onPress(product)}>
-      <Image
-        source={photo}
-        style={[styles.image, { height: Math.round((width - 40) * 1.05) }]}
-        resizeMode="cover"
-      />
-      <View style={styles.info}>
-        <Text style={styles.eyebrow}>New Cotton Collection</Text>
-        <Text style={styles.title} numberOfLines={1}>
-          {product.title}
-        </Text>
-        <View style={styles.bottomRow}>
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>{formatRupees(product.sellingPrice)}</Text>
-            <Text style={styles.mrp}>{formatRupees(product.mrp)}</Text>
-            {product.discount > 0 && (
-              <Text style={styles.discount}>{product.discount}% OFF</Text>
-            )}
-          </View>
-          <Text style={styles.cta}>View Product →</Text>
-        </View>
+    <View style={[styles.card, { width }]}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={e => {
+          const next = Math.round(e.nativeEvent.contentOffset.x / width);
+          indexRef.current = next;
+          setIndex(next);
+        }}
+      >
+        {slides.map(product => (
+          <Pressable key={product.id} style={{ width }} onPress={() => onPress(product)}>
+            <Image
+              source={product.images![0]}
+              style={[styles.image, { height: Math.round(width * 1.25) }]}
+              resizeMode="cover"
+            />
+            <View style={styles.info}>
+              <Text style={styles.eyebrow}>New Cotton Collection</Text>
+              <Text style={styles.title} numberOfLines={1}>
+                {product.title}
+              </Text>
+              <View style={styles.bottomRow}>
+                <View style={styles.priceRow}>
+                  <Text style={styles.price}>{formatRupees(product.sellingPrice)}</Text>
+                  <Text style={styles.mrp}>{formatRupees(product.mrp)}</Text>
+                  {product.discount > 0 && (
+                    <Text style={styles.discount}>{product.discount}% OFF</Text>
+                  )}
+                </View>
+                <Text style={styles.cta}>View →</Text>
+              </View>
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <View style={styles.dots}>
+        {slides.map((p, i) => (
+          <View key={p.id} style={[styles.dot, i === index && styles.dotActive]} />
+        ))}
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -63,11 +107,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
     marginBottom: 18,
+    alignSelf: 'center',
   },
   image: {
     width: '100%',
     backgroundColor: colors.primaryTint,
   },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingBottom: 12 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
+  dotActive: { width: 18, backgroundColor: colors.primary },
   info: {
     padding: 14,
   },

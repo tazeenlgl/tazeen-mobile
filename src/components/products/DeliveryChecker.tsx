@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../../theme/colors';
+import { estimatedDelivery } from '../../utils/pricing';
 
 const PIN_CODE_PATTERN = /^[1-9][0-9]{5}$/;
 
@@ -11,7 +12,9 @@ function checkDeliveryMock(pinCode: string): string {
   if (!PIN_CODE_PATTERN.test(pinCode)) {
     return 'Enter a valid 6-digit PIN code';
   }
-  return 'Delivery available to this PIN code';
+  // Metro PIN codes (1 to 7 prefix) are quicker than the rest in this mock.
+  const days = /^[1-7]/.test(pinCode) ? 4 : 6;
+  return `Delivery by ${estimatedDelivery(new Date().toISOString(), days)} · Cash on delivery available`;
 }
 
 export default function DeliveryChecker() {

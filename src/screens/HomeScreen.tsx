@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import {
-  Image,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import TopBar from '../components/common/TopBar';
+import NotificationBell from '../components/common/NotificationBell';
+import { useNotifications } from '../context/NotificationContext';
 import HeroProduct from '../components/home/HeroProduct';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import CategoryGrid from '../components/home/CategoryGrid';
@@ -39,8 +38,9 @@ export default function HomeScreen({
   onCartPress,
 }: HomeScreenProps) {
   const insets = useSafeAreaInsets();
+  const { unreadCount } = useNotifications();
   const [activeNav, setActiveNav] = useState('home');
-  const heroProduct = products.find(p => p.images && p.images.length > 0);
+  const heroProducts = products.filter(p => p.images && p.images.length > 0).slice(0, 6);
 
   const navBarBottomOffset = insets.bottom + 16;
   const navBarClearance = navBarBottomOffset + 80;
@@ -64,37 +64,20 @@ export default function HomeScreen({
       >
         <TopBar
           logo
+          rightAccessory={
+            <NotificationBell
+              count={unreadCount}
+              onPress={() => onNavigate?.('notifications')}
+            />
+          }
           onMenuPress={onMenuPress}
           onCartPress={onCartPress}
         />
 
-        {heroProduct && (
-          <>
-            <HeroProduct product={heroProduct} onPress={onSelectProduct} />
-            {heroProduct.images && heroProduct.images.length > 1 && (
-              <View style={styles.lookSection}>
-                <Text style={styles.sectionTitle}>Shop the Look</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.lookRow}
-                >
-                  {heroProduct.images.slice(1).map((photo, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => onSelectProduct(heroProduct)}
-                    >
-                      <Image source={photo} style={styles.lookImage} resizeMode="cover" />
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </>
-        )}
+        <HeroProduct products={heroProducts} onPress={onSelectProduct} />
 
         <FeaturedProducts
-          products={products.filter(p => p.id !== heroProduct?.id)}
+          products={products}
           onSelectProduct={onSelectProduct}
         />
 

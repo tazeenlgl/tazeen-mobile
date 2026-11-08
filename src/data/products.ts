@@ -1,5 +1,6 @@
 import type { Product } from '../types/product';
 import type { ProductOffer } from '../types/offer';
+import { suitCatalog } from './suitCatalog';
 
 type ProductDraft = Omit<Product, 'offerDetails'>;
 
@@ -86,6 +87,7 @@ const productDrafts: ProductDraft[] = [
     id: 'p2',
     image: { uri: '' },
     imageTint: '#E3B8C4',
+    images: [require('../assets/products/kurties/printed-straight-kurti/1.jpeg')],
     title: 'Printed Straight Kurti',
     category: 'kurties',
     sizes: ['S', 'M', 'L', 'XL'],
@@ -155,6 +157,7 @@ const productDrafts: ProductDraft[] = [
     id: 'p5',
     image: { uri: '' },
     imageTint: '#E0D2C7',
+    images: [require('../assets/products/pants/high-waist-palazzo/1.jpeg')],
     title: 'High-Waist Palazzo Pants',
     category: 'bottom-wear',
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -236,6 +239,7 @@ const productDrafts: ProductDraft[] = [
     id: 'p7',
     image: { uri: '' },
     imageTint: '#E8D2C7',
+    images: [require('../assets/products/kurties/a-line-floral-kurti/1.jpeg')],
     title: 'A-Line Floral Kurti with Pocket Detail',
     category: 'kurties',
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
@@ -259,6 +263,7 @@ const productDrafts: ProductDraft[] = [
     id: 'p8',
     image: { uri: '' },
     imageTint: '#C7D8E8',
+    images: [require('../assets/products/pants/slim-fit-trousers/1.jpeg')],
     title: 'Slim Fit Formal Trousers',
     category: 'pants',
     sizes: ['S', 'M', 'L'],
@@ -372,7 +377,36 @@ const productDrafts: ProductDraft[] = [
   },
 ];
 
-export const products: Product[] = productDrafts.map(draft => ({
-  ...draft,
-  offerDetails: buildOfferDetails(draft),
+// Suit products backed by real photos (see suitCatalog).
+const suitPhotoDrafts: ProductDraft[] = suitCatalog.map(entry => ({
+  id: `p-${entry.slug}`,
+  image: { uri: '' },
+  imageTint: entry.imageTint,
+  images: entry.images,
+  title: entry.title,
+  category: 'suits',
+  sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+  mrp: entry.mrp,
+  sellingPrice: entry.sellingPrice,
+  discount: Math.round(((entry.mrp - entry.sellingPrice) / entry.mrp) * 100),
+  offers: ['Buy 2 → Extra 15% OFF'],
+  stock: entry.stock,
+  rating: entry.rating,
+  reviewCount: entry.reviewCount,
+  shortDescription: entry.description,
+  keyFeatures: [
+    'Includes kurta, bottom and dupatta',
+    'Soft, comfortable fabric',
+    'Detailed embroidery and print work',
+    'Easy care, relaxed festive fit',
+  ],
+  tryOnEnabled: true,
+  tryOnModelImage: entry.imageTint,
 }));
+
+export const products: Product[] = [...suitPhotoDrafts, ...productDrafts].map(
+  draft => ({
+    ...draft,
+    offerDetails: buildOfferDetails(draft),
+  }),
+);

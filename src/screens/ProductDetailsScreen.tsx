@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/typography';
+import HeartButton from '../components/common/HeartButton';
+import SizeGuideSheet from '../components/products/SizeGuideSheet';
 import TopBar from '../components/common/TopBar';
 import ProductDetailsHeader from '../components/products/ProductDetailsHeader';
 import ProductRating from '../components/products/ProductRating';
@@ -24,6 +26,7 @@ type ProductDetailsScreenProps = {
   onBack: () => void;
   onCartPress: () => void;
   onTryItOn: (product: Product) => void;
+  onBuyNow: () => void;
 };
 
 function formatRupees(value: number): string {
@@ -49,11 +52,13 @@ export default function ProductDetailsScreen({
   onBack,
   onCartPress,
   onTryItOn,
+  onBuyNow,
 }: ProductDetailsScreenProps) {
   const insets = useSafeAreaInsets();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [appliedOfferId, setAppliedOfferId] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -85,6 +90,20 @@ export default function ProductDetailsScreen({
     return [...sameCategory, ...fallback].slice(0, 2);
   }, [product]);
 
+  const lookProducts = useMemo(() => {
+    const pairs: Record<string, string[]> = {
+      suits: ['kurties', 'pants'],
+      kurties: ['pants', 'bottom-wear'],
+      tops: ['pants', 'bottom-wear'],
+      pants: ['kurties', 'tops'],
+      'bottom-wear': ['kurties', 'tops'],
+    };
+    const wanted = pairs[product.category] ?? [];
+    return products
+      .filter(item => item.id !== product.id && wanted.includes(item.category))
+      .slice(0, 2);
+  }, [product]);
+
   const isOutOfStock = product.stock === 0;
   const resolvedSize = product.sizes.length === 0 ? 'One Size' : selectedSize;
   const isAddToCartDisabled = isOutOfStock;
@@ -98,6 +117,15 @@ export default function ProductDetailsScreen({
     onAddToCart();
   };
 
+  const handleBuyNow = () => {
+    if (!resolvedSize) {
+      setSizeError(true);
+      return;
+    }
+    addToCart(product, resolvedSize, appliedOffer);
+    onBuyNow();
+  };
+
   return (
     <View style={styles.flex}>
       <ScrollView
@@ -108,7 +136,11 @@ export default function ProductDetailsScreen({
           { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 110 },
         ]}
       >
-        <TopBar onBack={onBack} onCartPress={onCartPress} />
+        <TopBar
+          onBack={onBack}
+          onCartPress={onCartPress}
+          rightAccessory={<HeartButton productId={product.id} size={44} style={styles.topHeart} />}
+        />
 
         <ProductDetailsHeader
           images={product.images ?? []}
@@ -160,7 +192,11 @@ export default function ProductDetailsScreen({
             setSizeError(false);
           }}
           showError={sizeError}
+          onOpenGuide={() => setGuideOpen(true)}
         />
+        <Text style={styles.fitNote}>
+          Regular fit · model is 5'6" and wears size S. Between sizes? Go one size up.
+        </Text>
 
         <OfferCarousel
           offers={product.offerDetails}
@@ -176,6 +212,12 @@ export default function ProductDetailsScreen({
         </View>
 
         <KeyFeatures features={product.keyFeatures} />
+
+        <RelatedProducts
+          title="Complete the look"
+          products={lookProducts}
+          onSelect={onSelectProduct}
+        />
 
         <RelatedProducts
           products={relatedProducts}
@@ -204,10 +246,16 @@ export default function ProductDetailsScreen({
         <Pressable
           style={[styles.primaryButton, isOutOfStock && styles.buttonDisabled]}
           disabled={isOutOfStock}
+          onPress={handleBuyNow}
         >
           <Text style={styles.primaryButtonText}>Buy Now</Text>
         </Pressable>
       </View>
+      <SizeGuideSheet
+        visible={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        selectedSize={selectedSize}
+      />
     </View>
   );
 }
@@ -215,6 +263,8 @@ export default function ProductDetailsScreen({
 const MAX_DETAILS_WIDTH = 640;
 
 const styles = StyleSheet.create({
+  topHeart: { marginRight: 8 },
+  fitNote: { marginTop: -12, marginBottom: 18, fontSize: 12, lineHeight: 17, color: colors.textSecondary },
   centered: {
     width: '100%',
     maxWidth: MAX_DETAILS_WIDTH,

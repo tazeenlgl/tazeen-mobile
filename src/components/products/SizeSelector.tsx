@@ -7,6 +7,7 @@ type SizeSelectorProps = {
   selectedSize: string | null;
   onSelect: (size: string) => void;
   showError?: boolean;
+  onOpenGuide?: () => void;
 };
 
 export default function SizeSelector({
@@ -14,10 +15,18 @@ export default function SizeSelector({
   selectedSize,
   onSelect,
   showError = false,
+  onOpenGuide,
 }: SizeSelectorProps) {
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Select Size</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>Select Size</Text>
+        {onOpenGuide ? (
+          <Pressable onPress={onOpenGuide} hitSlop={8}>
+            <Text style={styles.guideLink}>Size guide ›</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {sizes.length === 0 ? (
         <View style={[styles.chip, styles.chipActive]}>
           <Text style={[styles.chipLabel, styles.chipLabelActive]}>
@@ -52,6 +61,8 @@ export default function SizeSelector({
 }
 
 const styles = StyleSheet.create({
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  guideLink: { fontSize: 13, fontWeight: '700', color: colors.primary },
   error: {
     marginTop: 8,
     fontSize: 13,

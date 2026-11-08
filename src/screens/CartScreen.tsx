@@ -12,9 +12,10 @@ type CartScreenProps = {
   onBack?: () => void;
   onMenuPress?: () => void;
   onBrowseProducts?: () => void;
+  onCheckout?: () => void;
 };
 
-export default function CartScreen({ onBack, onMenuPress, onBrowseProducts }: CartScreenProps) {
+export default function CartScreen({ onBack, onMenuPress, onBrowseProducts, onCheckout }: CartScreenProps) {
   const insets = useSafeAreaInsets();
   const {
     items,
@@ -92,6 +93,7 @@ export default function CartScreen({ onBack, onMenuPress, onBrowseProducts }: Ca
           subtotal={subtotal}
           totalDiscount={totalDiscount}
           total={total}
+          onCheckout={onCheckout}
         />
       </ScrollView>
     </View>
