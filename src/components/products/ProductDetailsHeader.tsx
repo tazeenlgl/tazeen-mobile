@@ -10,10 +10,13 @@ import {
 } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { colors } from '../../theme/colors';
+import ProductImagePlaceholder from './ProductImagePlaceholder';
 
 const { width: screenWidth } = Dimensions.get('window');
 // Matches the scroll content's horizontal padding (see ProductDetailsScreen).
-const SLOT_WIDTH = screenWidth - 40;
+// Keep in sync with MAX_DETAILS_WIDTH in ProductDetailsScreen.
+const MAX_DETAILS_WIDTH = 640;
+const SLOT_WIDTH = Math.min(screenWidth, MAX_DETAILS_WIDTH) - 40;
 
 type ProductDetailsHeaderProps = {
   // Real local gallery images, when the product has them. Falls back to
@@ -32,7 +35,7 @@ export default function ProductDetailsHeader({
   if (images.length === 0) {
     return (
       <View style={styles.wrapper}>
-        <View style={[styles.image, { backgroundColor: imageTint }]} />
+        <ProductImagePlaceholder tint={imageTint} style={styles.image} />
       </View>
     );
   }

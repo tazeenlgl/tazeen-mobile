@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { displayFont, typography } from '../../theme/typography';
 import CartButton from './CartButton';
 
 type TopBarProps = {
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   title: {
+    fontFamily: displayFont,
     fontSize: 22,
     fontWeight: '700',
     color: colors.heading,

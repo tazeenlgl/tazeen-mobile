@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { displayFont } from '../theme/typography';
 import TopBar from '../components/common/TopBar';
 import ProductDetailsHeader from '../components/products/ProductDetailsHeader';
 import ProductRating from '../components/products/ProductRating';
@@ -52,11 +53,13 @@ export default function ProductDetailsScreen({
   const insets = useSafeAreaInsets();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [appliedOfferId, setAppliedOfferId] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
     setSelectedSize(null);
     setAppliedOfferId(null);
+    setSizeError(false);
   }, [product.id]);
 
   const handleApplyOffer = (offer: ProductOffer) => {
@@ -84,10 +87,11 @@ export default function ProductDetailsScreen({
 
   const isOutOfStock = product.stock === 0;
   const resolvedSize = product.sizes.length === 0 ? 'One Size' : selectedSize;
-  const isAddToCartDisabled = isOutOfStock || !resolvedSize;
+  const isAddToCartDisabled = isOutOfStock;
 
   const handleAddToCart = () => {
     if (!resolvedSize) {
+      setSizeError(true);
       return;
     }
     addToCart(product, resolvedSize, appliedOffer);
@@ -100,6 +104,7 @@ export default function ProductDetailsScreen({
         style={styles.flex}
         contentContainerStyle={[
           styles.scrollContent,
+          styles.centered,
           { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 110 },
         ]}
       >
@@ -150,7 +155,11 @@ export default function ProductDetailsScreen({
         <SizeSelector
           sizes={product.sizes}
           selectedSize={selectedSize}
-          onSelect={setSelectedSize}
+          onSelect={size => {
+            setSelectedSize(size);
+            setSizeError(false);
+          }}
+          showError={sizeError}
         />
 
         <OfferCarousel
@@ -203,7 +212,14 @@ export default function ProductDetailsScreen({
   );
 }
 
+const MAX_DETAILS_WIDTH = 640;
+
 const styles = StyleSheet.create({
+  centered: {
+    width: '100%',
+    maxWidth: MAX_DETAILS_WIDTH,
+    alignSelf: 'center',
+  },
   flex: {
     flex: 1,
     backgroundColor: colors.background,
@@ -212,7 +228,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   productName: {
-    fontSize: 20,
+    fontFamily: displayFont,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.heading,
     marginBottom: 8,
@@ -267,7 +284,7 @@ const styles = StyleSheet.create({
   discount: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.goldText,
   },
   stock: {
     fontSize: 13,

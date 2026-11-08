@@ -6,12 +6,14 @@ type SizeSelectorProps = {
   sizes: string[];
   selectedSize: string | null;
   onSelect: (size: string) => void;
+  showError?: boolean;
 };
 
 export default function SizeSelector({
   sizes,
   selectedSize,
   onSelect,
+  showError = false,
 }: SizeSelectorProps) {
   return (
     <View style={styles.section}>
@@ -42,11 +44,20 @@ export default function SizeSelector({
           })}
         </View>
       )}
+      {showError && (
+        <Text style={styles.error}>Please select a size to continue</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  error: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#B3261E',
+  },
   section: {
     marginBottom: 20,
   },

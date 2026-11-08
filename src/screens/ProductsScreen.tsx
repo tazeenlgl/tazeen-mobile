@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import TopBar from '../components/common/TopBar';
@@ -7,9 +15,19 @@ import BottomNavigation from '../components/home/BottomNavigation';
 import CategoryFilter from '../components/products/CategoryFilter';
 import ProductFilterBar from '../components/products/ProductFilterBar';
 import ProductCard from '../components/products/ProductCard';
+import ProductSortFilterSheet from '../components/products/ProductSortFilterSheet';
+import type { SheetMode } from '../components/products/ProductSortFilterSheet';
 import { products } from '../data/products';
 import { productCategories } from '../data/productCategories';
 import type { Product } from '../types/product';
+import {
+  DEFAULT_FILTERS,
+  SORT_OPTIONS,
+  collectSizes,
+  countActiveFilters,
+  filterAndSortProducts,
+} from '../utils/productFilters';
+import type { ProductFilters } from '../utils/productFilters';
 
 type ProductsScreenProps = {
   drawerOpen: boolean;
@@ -20,27 +38,66 @@ type ProductsScreenProps = {
   onCartPress: () => void;
 };
 
+const SIDE_PADDING = 20;
+const COLUMN_GAP = 14;
+const TABLET_BREAKPOINT = 600;
+const MAX_CONTENT_WIDTH = 1100;
+const availableSizes = collectSizes(products);
+
 export default function ProductsScreen({
-  drawerOpen,
   onMenuPress,
-  onDrawerClose,
   onNavigate,
   onSelectProduct,
   onCartPress,
 }: ProductsScreenProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const [activeNav, setActiveNav] = useState('products');
-  const [activeCategoryId, setActiveCategoryId] = useState('all');
+  const [filters, setFilters] = useState<ProductFilters>(DEFAULT_FILTERS);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState<SheetMode | null>(null);
 
   const navBarBottomOffset = insets.bottom + 16;
   const navBarClearance = navBarBottomOffset + 80;
 
-  const visibleProducts = useMemo(() => {
-    if (activeCategoryId === 'all') {
-      return products;
+  const numColumns = width >= TABLET_BREAKPOINT ? 3 : 2;
+  const contentWidth = Math.min(width, MAX_CONTENT_WIDTH) - SIDE_PADDING * 2;
+  const cardWidth = Math.floor(
+    (contentWidth - COLUMN_GAP * (numColumns - 1)) / numColumns,
+  );
+
+  const visibleProducts = useMemo(
+    () => filterAndSortProducts(products, filters),
+    [filters],
+  );
+
+  const sortLabel =
+    filters.sort === 'relevance'
+      ? undefined
+      : SORT_OPTIONS.find(option => option.key === filters.sort)?.label;
+
+  const updateFilters = (patch: Partial<ProductFilters>) =>
+    setFilters(current => ({ ...current, ...patch }));
+
+  const toggleSize = (size: string) =>
+    setFilters(current => ({
+      ...current,
+      sizes: current.sizes.includes(size)
+        ? current.sizes.filter(item => item !== size)
+        : [...current.sizes, size],
+    }));
+
+  const clearSheetFilters = () =>
+    updateFilters({ sizes: [], inStockOnly: false });
+
+  const resetAll = () => setFilters(DEFAULT_FILTERS);
+
+  const toggleSearch = () => {
+    if (searchOpen) {
+      updateFilters({ query: '' });
     }
-    return products.filter(product => product.category === activeCategoryId);
-  }, [activeCategoryId]);
+    setSearchOpen(open => !open);
+  };
 
   const handleNavChange = (key: string) => {
     setActiveNav(key);
@@ -50,10 +107,13 @@ export default function ProductsScreen({
   return (
     <View style={styles.flex}>
       <FlatList
+        // numColumns cannot change on a mounted FlatList, so remount on change.
+        key={`columns-${numColumns}`}
         data={visibleProducts}
         keyExtractor={item => item.id}
-        numColumns={2}
+        numColumns={numColumns}
         columnWrapperStyle={styles.column}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.listContent,
           {
@@ -68,23 +128,70 @@ export default function ProductsScreen({
               onMenuPress={onMenuPress}
               onCartPress={onCartPress}
               rightAccessory={
-                <Text style={styles.searchIcon}>{'\u{1F50D}'}</Text>
+                <Pressable
+                  onPress={toggleSearch}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={searchOpen ? 'Close search' : 'Search products'}
+                >
+                  <Text style={styles.searchIcon}>
+                    {searchOpen ? '✕' : '\u{1F50D}'}
+                  </Text>
+                </Pressable>
               }
             />
+
+            {searchOpen && (
+              <TextInput
+                style={styles.searchInput}
+                value={filters.query}
+                onChangeText={query => updateFilters({ query })}
+                placeholder="Search suits, kurties, pants..."
+                placeholderTextColor={colors.placeholder}
+                autoFocus
+                returnKeyType="search"
+                clearButtonMode="while-editing"
+              />
+            )}
 
             <View style={styles.categoryWrap}>
               <CategoryFilter
                 categories={productCategories}
-                activeCategoryId={activeCategoryId}
-                onSelect={setActiveCategoryId}
+                activeCategoryId={filters.categoryId}
+                onSelect={categoryId => updateFilters({ categoryId })}
               />
             </View>
 
-            <ProductFilterBar />
+            <ProductFilterBar
+              activeFilterCount={countActiveFilters(filters)}
+              sortLabel={sortLabel}
+              onFilterPress={() => setSheetMode('filter')}
+              onSortPress={() => setSheetMode('sort')}
+            />
+
+            <Text style={styles.resultCount}>
+              {visibleProducts.length}{' '}
+              {visibleProducts.length === 1 ? 'product' : 'products'}
+            </Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No products found</Text>
+            <Text style={styles.emptyBody}>
+              Try a different search or clear your filters.
+            </Text>
+            <Pressable style={styles.emptyButton} onPress={resetAll}>
+              <Text style={styles.emptyButtonText}>Reset filters</Text>
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (
-          <ProductCard product={item} onPress={onSelectProduct} />
+          <ProductCard
+            product={item}
+            width={cardWidth}
+            onPress={onSelectProduct}
+          />
         )}
       />
 
@@ -92,6 +199,19 @@ export default function ProductsScreen({
         activeKey={activeNav}
         onChange={handleNavChange}
         bottomOffset={navBarBottomOffset}
+      />
+
+      <ProductSortFilterSheet
+        mode={sheetMode}
+        sort={filters.sort}
+        sizes={filters.sizes}
+        availableSizes={availableSizes}
+        inStockOnly={filters.inStockOnly}
+        onSortChange={sort => updateFilters({ sort })}
+        onToggleSize={toggleSize}
+        onInStockChange={inStockOnly => updateFilters({ inStockOnly })}
+        onClear={clearSheetFilters}
+        onClose={() => setSheetMode(null)}
       />
     </View>
   );
@@ -103,16 +223,64 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SIDE_PADDING,
+    maxWidth: MAX_CONTENT_WIDTH,
+    width: '100%',
+    alignSelf: 'center',
   },
   searchIcon: {
     fontSize: 18,
+    color: colors.heading,
+  },
+  searchInput: {
+    height: 46,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    fontSize: 15,
+    color: colors.heading,
   },
   categoryWrap: {
+    marginTop: 12,
     marginBottom: 12,
   },
+  resultCount: {
+    marginBottom: 12,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
   column: {
-    justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: COLUMN_GAP,
+    columnGap: COLUMN_GAP,
+  },
+  empty: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.heading,
+  },
+  emptyBody: {
+    marginTop: 6,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  emptyButton: {
+    marginTop: 18,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+  },
+  emptyButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.white,
   },
 });

@@ -1,11 +1,15 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import { colors } from '../../theme/colors';
 import type { Product } from '../../types/product';
+import ProductImagePlaceholder from './ProductImagePlaceholder';
 
 type ProductCardProps = {
   product: Product;
   onPress?: (product: Product) => void;
+  // Pixel width from the parent grid; falls back to a two-column share.
+  width?: number;
 };
 
 const MAX_VISIBLE_SIZES = 4;
@@ -24,7 +28,21 @@ function getStockLabel(stock: number): string {
   return 'In stock';
 }
 
-export default function ProductCard({ product, onPress }: ProductCardProps) {
+const hasRealImage = (source?: ImageSourcePropType): source is ImageSourcePropType => {
+  if (!source) {
+    return false;
+  }
+  if (typeof source === 'number') {
+    return true;
+  }
+  if (Array.isArray(source)) {
+    return source.length > 0;
+  }
+  return Boolean((source as { uri?: string }).uri);
+};
+
+export default function ProductCard({ product, onPress, width }: ProductCardProps) {
+  const coverImage = product.images?.[0] ?? product.image;
   const isOutOfStock = product.stock === 0;
   const visibleSizes = product.sizes.slice(0, MAX_VISIBLE_SIZES);
   const extraSizeCount = product.sizes.length - visibleSizes.length;
@@ -32,10 +50,25 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
 
   return (
     <Pressable
-      style={styles.card}
+      style={({ pressed }) => [
+        styles.card,
+        width ? { width } : null,
+        pressed && styles.cardPressed,
+      ]}
       onPress={() => onPress?.(product)}
+      accessibilityRole="button"
+      accessibilityLabel={product.title}
     >
-      <View style={[styles.imageArea, { backgroundColor: product.imageTint }]}>
+      <View style={styles.imageArea}>
+        {hasRealImage(coverImage) ? (
+          <Image source={coverImage} style={styles.image} resizeMode="cover" />
+        ) : (
+          <ProductImagePlaceholder
+            tint={product.imageTint}
+            compact
+            style={styles.image}
+          />
+        )}
         {product.discount > 0 && (
           <View style={styles.saleBadge}>
             <Text style={styles.saleBadgeText}>SALE</Text>
@@ -104,13 +137,23 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
   },
+  cardPressed: {
+    opacity: 0.85,
+  },
   imageArea: {
     aspectRatio: 0.85,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+  },
+  image: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   saleBadge: {
-    margin: 8,
+    position: 'absolute',
+    top: 8,
+    right: 8,
     backgroundColor: colors.primary,
     borderRadius: 6,
     paddingHorizontal: 7,
@@ -164,7 +207,7 @@ const styles = StyleSheet.create({
   discount: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.goldText,
   },
   offer: {
     fontSize: 11,

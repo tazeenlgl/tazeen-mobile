@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LogBox, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
+import { displayFont } from '../theme/typography';
 import TopBar from '../components/common/TopBar';
 import BottomNavigation from '../components/home/BottomNavigation';
 import GiftCardCarousel from '../components/rewards/GiftCardCarousel';
@@ -102,7 +103,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   pageTitle: {
-    fontSize: 20,
+    fontFamily: displayFont,
+    fontSize: 22,
     fontWeight: '800',
     color: colors.heading,
     marginBottom: 1,
